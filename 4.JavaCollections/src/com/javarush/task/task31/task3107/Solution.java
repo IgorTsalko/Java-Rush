@@ -1,0 +1,31 @@
+package com.javarush.task.task31.task3107;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+/*
+Null Object Pattern
+*/
+public class Solution {
+    private FileData fileData;
+
+    public Solution(String pathToFile) {
+        try {
+            Path file = Paths.get(pathToFile);
+            boolean hidden = Files.isHidden(file);
+            boolean executable = Files.isExecutable(file);
+            boolean directory = Files.isDirectory(file);
+            boolean writable = Files.isWritable(file);
+            fileData = new ConcreteFileData(hidden, executable, directory, writable);
+        } catch (IOException ex) {
+            fileData = new NullFileData(ex);
+        }
+
+    }
+
+    public FileData getFileData() {
+        return fileData;
+    }
+}
