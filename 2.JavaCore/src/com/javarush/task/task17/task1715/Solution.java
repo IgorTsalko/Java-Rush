@@ -25,6 +25,7 @@ public class Solution {
     }
 
     public static class Apteka implements Runnable {
+
         @Override
         public void run() {
             while (!isStopped) {
