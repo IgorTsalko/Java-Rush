@@ -20,7 +20,6 @@ public class Solution {
 
         FileInputStream in;
 
-
         FileUtils.renameFile(resultFile, newNameFile);
         FileOutputStream out = new FileOutputStream(newNameFile);
 
