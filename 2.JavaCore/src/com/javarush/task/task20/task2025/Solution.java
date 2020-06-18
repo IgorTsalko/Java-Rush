@@ -9,9 +9,16 @@ import java.util.*;
 public class Solution {
     private static long[][] powMatrix = new long[10][21];
 
+    static {
+        // Генерируем матрицу степеней
+        generatePowMatrix();
+    }
+
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
+
         long[] armstrong = getNumbers(Long.MAX_VALUE);
+
         double time = (System.currentTimeMillis() - startTime) / 1000.0;
         double usedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576.0;
         System.out.printf("Затрачено на всю задачу %.2f сек; Памяти: %.2f мб.\n", time, usedMemory);
@@ -22,57 +29,74 @@ public class Solution {
     }
 
     public static long[] getNumbers(long N) {
-        long[] arr = null;
+        // Чисел армстронга в промежутке от 0 до Long.MAX_VALUE - 50
+        long[] armstrongNumbers = new long[50];
         if (N > 0 && N <= Long.MAX_VALUE) {
-            Set<Long> armstrongNumbers = new TreeSet<>();
-
-            // Создаем подходящие числа для поиска чисел армстронга
-            List<Long> numbers = createSuitableNumbers();
-            // Генерируем матрицу степеней
-            generatePowMatrix();
-
-            for (long n : numbers) {
-                for (int i = 1; i <= 1000 ; i *= 10) {
-                    long number = n*i;
-                    if (number < 0) {
-                        break;
-                    }
-                    long a = powerSum(number);
-                    if (a < 0) {
-                        break;
-                    }
-                    if (n == a) {
-                        armstrongNumbers.add(n);
-                    } else if (a == powerSum(a)) {
-                        armstrongNumbers.add(a);
-                    }
-                }
-            }
-            long[] result = new long[armstrongNumbers.size()];
+            // Заполняем список числами армстронга
+            List<Long> numbers = findArmstrongNumbers();
+            // Сортируем по возрастанию
+            Collections.sort(numbers);
 
             int count = 0;
-            for (long l : armstrongNumbers) {
-                result[count++] = l;
+            for (long l : numbers) {
+                armstrongNumbers[count++] = l;
             }
-            arr = result;
         }
-        return arr;
+        return armstrongNumbers;
     }
 
-    private static List<Long> createSuitableNumbers() {
-        List<Long> numbers = new ArrayList<>();
+    // Находим и возращаем числа армстронга
+    private static List<Long> findArmstrongNumbers() {
+        List<Long> armstrongNumbers = new ArrayList<>();
         long num = 0;
+
         while (num >= 0) {
             if (num % 10 == 9) {
+                // Если число с окончанием 9 - нужно получить правильное, согласно алгоритму
                 num = getRightNumber(num);
             } else {
                 num++;
             }
-            numbers.add(num);
+
+            /*
+            Проверяем полученное число, а так же число с добавением 1-го, 2-ух и 3-ех
+            нулей в конце на соответсвите числу Армстронга
+             */
+            for (int i = 1; i <= 1000 ; i *= 10) {
+                long number = num * i;
+                // Если число, число Армстронга, добавляем его, если его еще нет в листе.
+                isArmstrongAddIt(number, armstrongNumbers);
+            }
         }
-        return numbers;
+        return armstrongNumbers;
     }
 
+    // Если число, число Армстронга, добавляем его, если его еще нет в листе.
+    private static void isArmstrongAddIt(long num, List<Long> numbers) {
+        if (num < 0) {
+            return;
+        }
+        long armstrongNum;
+        
+        long a = powerSum(num);
+        if (a < 0) {
+            return;
+        }
+
+        if (a == num) {
+            armstrongNum = num;
+        } else if (a == powerSum(a)) {
+            armstrongNum = a;
+        } else {
+            return;
+        }
+
+        if (!numbers.contains(armstrongNum)) {
+            numbers.add(armstrongNum);
+        }
+    }
+
+    // Получаем правильное число для поиска чисел Армстронга. 19 -> 22, 199 -> 222 ...
     private static long getRightNumber(long num) {
         int count = 1;
         long tail;
