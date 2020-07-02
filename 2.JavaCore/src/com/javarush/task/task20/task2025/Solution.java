@@ -19,9 +19,9 @@ public class Solution {
 
         long[] armstrong = getNumbers(Long.MAX_VALUE);
 
-        double time = (System.currentTimeMillis() - startTime) / 1000.0;
+        double totalTime = (System.currentTimeMillis() - startTime) / 1000.0;
         double usedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576.0;
-        System.out.printf("Затрачено на всю задачу %.2f сек; Памяти: %.2f мб.\n", time, usedMemory);
+        System.out.printf("Затрачено на всю задачу %.2f сек; Памяти: %.2f мб.\n", totalTime, usedMemory);
         System.out.println("Числа Армстронга:");
         System.out.println(Arrays.toString(armstrong));
         checkArmstrongNumbers(armstrong);
@@ -29,13 +29,11 @@ public class Solution {
     }
 
     public static long[] getNumbers(long N) {
-        // Чисел армстронга в промежутке от 0 до Long.MAX_VALUE - 50
+        // Чисел армстронга в промежутке от 0 до Long.MAX_VALUE - 50 шт
         long[] armstrongNumbers = new long[50];
         if (N > 0 && N <= Long.MAX_VALUE) {
             // Заполняем список числами армстронга
-            List<Long> numbers = findArmstrongNumbers();
-            // Сортируем по возрастанию
-            Collections.sort(numbers);
+            Set<Long> numbers = findArmstrongNumbers();
 
             int count = 0;
             for (long l : numbers) {
@@ -46,54 +44,38 @@ public class Solution {
     }
 
     // Находим и возращаем числа армстронга
-    private static List<Long> findArmstrongNumbers() {
-        List<Long> armstrongNumbers = new ArrayList<>();
+    private static Set<Long> findArmstrongNumbers() {
+        Set<Long> armstrongNumbers = new TreeSet<>();
         long num = 0;
 
         while (num >= 0) {
-            if (num % 10 == 9) {
-                // Если число с окончанием 9 - нужно получить правильное, согласно алгоритму
-                num = getRightNumber(num);
-            } else {
-                num++;
-            }
+            if (num % 10 == 9) num = getRightNumber(num);
+            else num++;
 
             /*
-            Проверяем полученное число, а так же число с добавением 1-го, 2-ух и 3-ех
+            Проверяем полученное число, а так же число с добавлением 1-го, 2-ух и 3-ех
             нулей в конце на соответсвите числу Армстронга
              */
             for (int i = 1; i <= 1000 ; i *= 10) {
                 long number = num * i;
-                // Если число, число Армстронга, добавляем его, если его еще нет в листе.
-                isArmstrongAddIt(number, armstrongNumbers);
+                // Если число не вышло за пределы Long, проверяем его на соответсвие
+                // числу Армстронга и добавляем, если его еще нет в листе.
+                if (number >= 0) {
+                    long a = powerSum(number);
+                    if (a < 0) continue;
+
+                    long armstrongNum;
+                    if (a == number) armstrongNum = number;
+                    else if (a == powerSum(a)) armstrongNum = a;
+                    else continue;
+
+                    armstrongNumbers.add(armstrongNum);
+                } else {
+                    break;
+                }
             }
         }
         return armstrongNumbers;
-    }
-
-    // Если число, число Армстронга, добавляем его, если его еще нет в листе.
-    private static void isArmstrongAddIt(long num, List<Long> numbers) {
-        if (num < 0) {
-            return;
-        }
-        long armstrongNum;
-        
-        long a = powerSum(num);
-        if (a < 0) {
-            return;
-        }
-
-        if (a == num) {
-            armstrongNum = num;
-        } else if (a == powerSum(a)) {
-            armstrongNum = a;
-        } else {
-            return;
-        }
-
-        if (!numbers.contains(armstrongNum)) {
-            numbers.add(armstrongNum);
-        }
     }
 
     // Получаем правильное число для поиска чисел Армстронга. 19 -> 22, 199 -> 222 ...
@@ -126,19 +108,23 @@ public class Solution {
      * @return степенную сумму числа
      */
     private static long powerSum(long n) {
-        int length = Long.toString(n).length();
-        if (length < 2) {
+        if (n < 10) {
             return n;
+        }
+
+        int length = 1;
+        long copyN = n;
+        while (copyN >= 10) {
+            copyN /= 10;
+            length++;
         }
 
         long result = 0;
         while (true) {
-            int numeral = (int) (n % 10);
-            result += powMatrix[numeral][length];
+            int num = (int) (n % 10);
+            result += powMatrix[num][length];
 
-            if (n < 10) {
-                break;
-            }
+            if (n < 10) break;
 
             n = n / 10;
         }
